@@ -85,6 +85,8 @@ public class BuildOffManagerCommands implements CommandExecutor {
             case "mail":
             case "sendmail":
                 return onMailCommand(sender, cmd, cmdAlias, args);
+            case "cleanlegacy":
+                return onCleanLegacyCommand(sender, cmd, cmdAlias, args);
         }
         sender.sendMessage(ChatColor.RED + "Unknown command! Do /bo help.");
         return false;
@@ -192,7 +194,8 @@ public class BuildOffManagerCommands implements CommandExecutor {
     }
 
     private boolean onInitCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
+        
     }
 
     private boolean onListPlayersCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
@@ -279,6 +282,10 @@ public class BuildOffManagerCommands implements CommandExecutor {
         } else {
             sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + message);
         }
+    }
+
+    private boolean onCleanLegacyCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

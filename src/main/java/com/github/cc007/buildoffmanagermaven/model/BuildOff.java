@@ -6,6 +6,12 @@
 package com.github.cc007.buildoffmanagermaven.model;
 
 import com.github.cc007.buildoffmanagermaven.BuildOffManager;
+import com.github.cc007.buildoffmanagermaven.utils.LocationHelper;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.managers.storage.StorageException;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,10 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.material.Directional;
 
 /**
  *
@@ -35,17 +44,15 @@ public class BuildOff {
     private OverviewBoard board;
     private Date buildOffEnd;
     private int plotsPerRow;
+    private byte direction;
+    private int plotSize;
+    private int pathWidth;
+    public static final int BORDER_WIDTH = 1;
 
     public BuildOff() {
+        //TODO constructor
         this.plots = new HashMap<>();
         this.resetContestants = new HashSet<>();
-        this.state = BuildOffState.DISABLED;
-    }
-
-    public BuildOff(Map<Integer, Plot> plots, Set<Contestant> resetContestants, BuildOffState state) {
-        this.plots = plots;
-        this.resetContestants = resetContestants;
-        this.state = state;
     }
 
     public boolean openBO() {
@@ -62,10 +69,20 @@ public class BuildOff {
         }
         if (state == BuildOffState.OPENED) {
             state = BuildOffState.RUNNING;
+
+            // set end date to auto close bo
             Calendar c = Calendar.getInstance();
             c.setTime(new Date());
             c.add(Calendar.DATE, 1);
             buildOffEnd = c.getTime();
+
+            RegionManager rgm = WGBukkit.getRegionManager(location.getWorld());
+            rgm.getRegion("contestcomplete").setPriority(0);
+            try {
+                rgm.save();
+            } catch (StorageException ex) {
+                Logger.getLogger(Plot.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return true;
         }
         return false;
@@ -74,6 +91,13 @@ public class BuildOff {
     public boolean closeBO() {
         if (state == BuildOffState.RUNNING) {
             state = BuildOffState.CLOSED;
+            RegionManager rgm = WGBukkit.getRegionManager(location.getWorld());
+            rgm.getRegion("contestcomplete").setPriority(3);
+            try {
+                rgm.save();
+            } catch (StorageException ex) {
+                Logger.getLogger(Plot.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return true;
         }
         return false;
@@ -82,7 +106,7 @@ public class BuildOff {
     public boolean resetPlot(int plotNr) {
         Plot plot = plots.get(plotNr);
         if (plot != null) {
-            plot.reset();
+            plot.reset(getPlotLocation(plotNr), direction, plotSize);
             return true;
         }
 
@@ -218,4 +242,38 @@ public class BuildOff {
         return resetContestants;
     }
 
+    public void initPlots() {
+        for (int i = 0; i < plots.size(); i++) {
+            plots.get(i).init(getPlotLocation(i), direction, plotSize);
+        }
+        BlockVector buildArea1 = new BlockVector(location.getBlockX(), 0, location.getBlockZ());
+
+        int boSizeX = (plotsPerRow * plotSize) + (plotsPerRow * BORDER_WIDTH * 2) + ((plotsPerRow - 1) * pathWidth) - 1;
+        int boSizeY = (plotsPerColumn() * plotSize) + (plotsPerColumn() * BORDER_WIDTH * 2) + ((plotsPerColumn() - 1) * pathWidth) - 1;
+
+        Location buildAreaLoc2 = LocationHelper.getLocation(location, boSizeX, boSizeY, 0, direction);
+        BlockVector buildArea2 = new BlockVector(buildAreaLoc2.getBlockX(), 255, buildAreaLoc2.getBlockZ());
+        ProtectedCuboidRegion boAreaPcr = new ProtectedCuboidRegion("contestcomplete", buildArea1, buildArea2);
+        boAreaPcr.setPriority(3);
+        RegionManager rgm = WGBukkit.getRegionManager(location.getWorld());
+        try {
+            rgm.save();
+        } catch (StorageException ex) {
+            Logger.getLogger(Plot.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private Location getPlotLocation(int plotNr) {
+        int xPlot = plotNr % plotsPerRow;
+        int yPlot = plotNr / plotsPerRow;
+
+        int xOffset = xPlot * (BORDER_WIDTH * 2 + plotSize + pathWidth);
+        int yOffset = yPlot * (BORDER_WIDTH * 2 + plotSize + pathWidth);
+
+        return LocationHelper.getLocation(location, xOffset, yOffset, 0, direction);
+    }
+
+    private int plotsPerColumn() {
+        return (int) Math.ceil(((double) plots.size()) / plotsPerRow);
+    }
 }
