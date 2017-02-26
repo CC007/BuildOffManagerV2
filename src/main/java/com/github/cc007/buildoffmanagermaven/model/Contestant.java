@@ -6,7 +6,6 @@
 package com.github.cc007.buildoffmanagermaven.model;
 
 import java.util.UUID;
-import org.bukkit.entity.Player;
 
 /**
  *

@@ -125,7 +125,7 @@
     </repository>
     <repository>
       <id>vault-repo</id>
-      <url>http://nexus.theyeticave.net/content/repositories/pub_releases/</url>
+      <url>http://nexus.hc.to/content/repositories/pub_releases</url>
     </repository>
     <repository>
       <id>sk89q-repo</id>
@@ -136,19 +136,31 @@
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.10.2-R0.1-SNAPSHOT</version>
+      <version>1.11.2-R0.1-SNAPSHOT</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
           <artifactId>guava</artifactId>
           <groupId>com.google.guava</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>gson</artifactId>
+          <groupId>com.google.code.gson</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit</artifactId>
+          <groupId>junit</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>snakeyaml</artifactId>
+          <groupId>org.yaml</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>craftbukkit</artifactId>
-      <version>1.10.2-R0.1-SNAPSHOT</version>
+      <version>1.11.2-R0.1-SNAPSHOT</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
@@ -166,11 +178,21 @@
       <artifactId>bungeecord-chat</artifactId>
       <version>1.8-SNAPSHOT</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>gson</artifactId>
+          <groupId>com.google.code.gson</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.milkbowl.vault</groupId>
       <artifactId>Vault</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.6</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

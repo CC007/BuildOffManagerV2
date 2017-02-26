@@ -7,11 +7,9 @@ package com.github.cc007.buildoffmanagermaven;
 
 import com.github.cc007.buildoffmanagermaven.model.Contestant;
 import com.github.cc007.buildoffmanagermaven.model.Plot;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
