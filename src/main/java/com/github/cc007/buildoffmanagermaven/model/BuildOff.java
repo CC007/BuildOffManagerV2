@@ -61,7 +61,7 @@ public class BuildOff {
             plots.put(i, new Plot(i, getPlotLocation(i), direction, plotSize));
         }
         this.themeSign = new ThemeSign("Theme", themeSignLocation, themeSignDirection);
-        this.board = new OverviewBoard(plots, overviewBoardLocation, overviewBoardDirection);
+        this.board = new OverviewBoard(plots, overviewBoardLocation, overviewBoardDirection, plotsPerRow);
     }
 
     public BuildOff(Map<Integer, Plot> plots, Set<Contestant> resetContestants, BuildOffState state, Location location, byte direction, ThemeSign themeSign, OverviewBoard board, Date buildOffEnd, int plotsPerRow, int plotSize, int pathWidth) {
@@ -107,6 +107,7 @@ public class BuildOff {
             } catch (StorageException ex) {
                 Logger.getLogger(Plot.class.getName()).log(Level.SEVERE, null, ex);
             }
+            themeSign.update(false);
             return true;
         }
         return false;
@@ -130,7 +131,7 @@ public class BuildOff {
     public boolean resetPlot(int plotNr) {
         Plot plot = plots.get(plotNr);
         if (plot != null) {
-            plot.reset(getPlotLocation(plotNr), direction, plotSize);
+            plot.reset();
             return true;
         }
 
@@ -148,7 +149,7 @@ public class BuildOff {
 
     public boolean resetPlot(Player player) {
         for (Map.Entry<Integer, Plot> plotEntry : plots.entrySet()) {
-            if (player != null && player.equals(Bukkit.getPlayer(plotEntry.getValue().getContestant().getUuid()))) {
+            if (player != null && plotEntry.getValue().getContestant() != null && player.equals(Bukkit.getPlayer(plotEntry.getValue().getContestant().getUuid()))) {
                 return resetPlot(plotEntry.getKey());
 
             }
@@ -167,7 +168,7 @@ public class BuildOff {
 
     public boolean resetPlot(String name) {
         for (Map.Entry<Integer, Plot> plotEntry : plots.entrySet()) {
-            if (name != null && name.equals(plotEntry.getValue().getContestant().getName())) {
+            if (name != null && plotEntry.getValue().getContestant() != null && name.equals(plotEntry.getValue().getContestant().getName())) {
                 return resetPlot(plotEntry.getKey());
             }
         }
@@ -189,6 +190,7 @@ public class BuildOff {
             for (int plotNr : plots.keySet()) {
                 resetPlot(plotNr);
             }
+            themeSign.update(true);
             return true;
         }
         return false;
@@ -214,7 +216,9 @@ public class BuildOff {
 
     public Boolean leavePlot(Player player) {
         if (state == BuildOffState.OPENED) {
-            return resetPlot(player);
+            Boolean result = resetPlot(player);
+            board.update();
+            return result;
         }
         return null;
     }
@@ -225,7 +229,7 @@ public class BuildOff {
 
     public Plot getPlot(Player player) {
         for (Plot plot : plots.values()) {
-            if (player != null && plot.getContestant() != null && player.equals(Bukkit.getPlayer(plot.getContestant().getUuid()))) {
+            if (player != null && plot.getContestant() != null && plot.getContestant() != null && player.equals(Bukkit.getPlayer(plot.getContestant().getUuid()))) {
                 return plot;
             }
         }
@@ -234,7 +238,7 @@ public class BuildOff {
 
     public Plot getPlot(String name) {
         for (Plot plot : plots.values()) {
-            if (name != null && plot.getContestant() != null && name.equals(plot.getContestant().getName())) {
+            if (name != null && plot.getContestant() != null && plot.getContestant() != null && name.equals(plot.getContestant().getName())) {
                 return plot;
             }
         }
@@ -276,7 +280,7 @@ public class BuildOff {
     public void initPlots() {
         for (int i = 0; i < plots.size(); i++) {
             BuildOffManager.getPlugin().getLogger().info("Init plot " + i);
-            plots.get(i).init(getPlotLocation(i), direction, plotSize);
+            plots.get(i).init();
         }
         BlockVector buildArea1 = new BlockVector(location.getBlockX(), 0, location.getBlockZ());
 
@@ -294,6 +298,8 @@ public class BuildOff {
         } catch (StorageException ex) {
             Logger.getLogger(Plot.class.getName()).log(Level.SEVERE, null, ex);
         }
+        board.update();
+        themeSign.update(true);
     }
 
     private Location getPlotLocation(int plotNr) {

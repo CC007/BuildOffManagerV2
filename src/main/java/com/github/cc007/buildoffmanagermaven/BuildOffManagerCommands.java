@@ -85,6 +85,8 @@ public class BuildOffManagerCommands implements CommandExecutor {
                 return onResetPlotCommand(sender, cmd, cmdAlias, args);
             case "bugplayers":
             case "listplayers":
+            case "who":
+            case "list":
                 return onListPlayersCommand(sender, cmd, cmdAlias, args);
             case "settheme":
                 return onSetThemeCommand(sender, cmd, cmdAlias, args);
@@ -105,7 +107,32 @@ public class BuildOffManagerCommands implements CommandExecutor {
     }
 
     public boolean onHelpCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
-        //TODO help page
+        String help = ChatColor.YELLOW + " ---- " + ChatColor.GOLD + "Build Off Help" + ChatColor.YELLOW + " ---- \n"
+                + ChatColor.GOLD + "/bo join" + ChatColor.RESET + ": Join the Build Off.\n"
+                + ChatColor.GOLD + "/bo leave" + ChatColor.RESET + ": Leave the Build Off.\n"
+                + ChatColor.GOLD + "/bo theme" + ChatColor.RESET + ": Displays the Theme of the Build Off.\n"
+                + ChatColor.GOLD + "/bo tp" + ChatColor.RESET + ": Teleport to your plot.\n"
+                + ChatColor.GOLD + "/bo tp <number>" + ChatColor.RESET + ": Teleport to plot <number>.\n"
+                + ChatColor.GOLD + "/bo tp <name>" + ChatColor.RESET + ": Teleport to the plot of <name>.\n"
+                + ChatColor.GOLD + "/bo time" + ChatColor.RESET + ": Displays the time until the end of the Build Off.\n"
+                + ChatColor.GOLD + "/bo help" + ChatColor.RESET + ": Displays this help message.";
+        if (sender.hasPermission("buildoffmanager.staff")) {
+            help += "\n" + ChatColor.YELLOW + " ---- " + ChatColor.GOLD + "BO Admin Commands" + ChatColor.YELLOW + " ---- \n"
+                    + ChatColor.GOLD + "/bo init" + ChatColor.RESET + ": Initialize the entire BO area.\n"
+                    + ChatColor.GOLD + "/bo open" + ChatColor.RESET + ": Open the BO to allow all players to enroll.\n"
+                    + ChatColor.GOLD + "/bo start" + ChatColor.RESET + ": Start the BO to allow player to build.\n"
+                    + ChatColor.GOLD + "/bo stop" + ChatColor.RESET + ": End the BO to prevent players from building.\n"
+                    + ChatColor.GOLD + "/bo reset" + ChatColor.RESET + ": Reset the entire BO area, to prepare for the next BO.\n"
+                    + ChatColor.GOLD + "/bo resetplot <nr>" + ChatColor.RESET + ": Reset plot number <nr>.\n"
+                    + ChatColor.GOLD + "/bo listplayers" + ChatColor.RESET + ": List enrolled and not enrolled players.\n"
+                    + ChatColor.GOLD + "/bo settheme <theme>" + ChatColor.RESET + ": Sets the theme for the next BO.\n"
+                    + ChatColor.GOLD + "/bo expandsize <x>" + ChatColor.RESET + ": Expands the BO area with <x> plots.\n"
+                    + ChatColor.GOLD + "/bo extendtime <time>" + ChatColor.RESET + ": Adds <time> tot he current BO.\n"
+                    + ChatColor.GOLD + "/bo mail" + ChatColor.RESET + ": Mails all contestants if they want their plot saved.\n"
+                    + ChatColor.GOLD + "/bo reload" + ChatColor.RESET + ": Reloads the config of this plugin.\n"
+                    + ChatColor.GOLD + "/bo cleanlegacy" + ChatColor.RESET + ": Remove WorldGuard regions from older versions.";
+        }
+        sender.sendMessage(help);
         return true;
     }
 
@@ -244,11 +271,11 @@ public class BuildOffManagerCommands implements CommandExecutor {
         int plotSize = 31;
         int pathWidth = 5;
         Location location = player.getLocation();
-        byte direction = 0;
-        Location themeSignLocation = LocationHelper.getLocation(player.getLocation(), -10, 0, 0, direction);
-        byte themeSignDirection = 0;
-        Location overviewBoardLocation = LocationHelper.getLocation(player.getLocation(), -20, 0, 0, direction);
-        byte overviewBoardDirection = 0;
+        byte direction = 4;
+        Location themeSignLocation = LocationHelper.getLocation(player.getLocation(), 6, -10, 1, direction);
+        byte themeSignDirection = 4;
+        Location overviewBoardLocation = LocationHelper.getLocation(player.getLocation(), 10, -10, 1, direction);
+        byte overviewBoardDirection = 4;
         BuildOffManager.getPlugin().setActiveBuildOff(
                 new BuildOff(plotCount,
                         location, direction,
@@ -313,7 +340,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
                 return true;
             }
         } else if (args[1].matches("[0-9]+")) {
-            tpPlot = bo.getPlot(Integer.parseInt(args[1]));
+            tpPlot = bo.getPlot(Integer.parseInt(args[1]) - 1);
             if (tpPlot == null) {
                 message(sender, "Choose a plot number between 1 and " + bo.getPlots().size() + ".", ChatColor.RED);
                 return true;
@@ -325,7 +352,10 @@ public class BuildOffManagerCommands implements CommandExecutor {
                 return true;
             }
         }
-        player.teleport(LocationHelper.getLocation(tpPlot.getPlotLocation(), 0, -3, 0, tpPlot.getDirection()));
+        Location tpLocation = LocationHelper.getLocation(tpPlot.getPlotLocation(), -3, -3, 0, tpPlot.getDirection());
+        tpLocation.setYaw(45.0f);
+        tpLocation.setPitch(0.0f);
+        player.teleport(tpLocation);
         return true;
     }
 
@@ -379,8 +409,12 @@ public class BuildOffManagerCommands implements CommandExecutor {
 
     private boolean onTimeCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
-        if (bo == null || bo.getState() != BuildOffState.OPENED) {
-            message(sender, "There is no Build Off ongoing at this time.", ChatColor.RED);
+        if (bo == null || bo.getState() != BuildOffState.RUNNING) {
+            if (bo != null && bo.getState() == BuildOffState.CLOSED) {
+                message(sender, "The Build Off has already ended.", ChatColor.RED);
+            } else {
+                message(sender, "The Build Off hasn't started yet.", ChatColor.RED);
+            }
             return true;
         }
         String totalTime = "";

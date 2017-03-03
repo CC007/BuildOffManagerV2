@@ -5,7 +5,10 @@
  */
 package com.github.cc007.buildoffmanagermaven.model;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Sign;
 
 /**
  *
@@ -47,4 +50,34 @@ public class ThemeSign {
         return direction;
     }
 
+    public void update(boolean secret) {
+        signLocation.getBlock().setType(Material.WALL_SIGN);
+        signLocation.getBlock().setData(directionToData(direction));
+        Sign sign = (Sign) signLocation.getBlock().getState();
+        sign.setLine(0, "=-=-=-=-=-=-=-=");
+        if (secret) {
+            sign.setLine(1, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Secret till");
+            sign.setLine(2, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "the start");
+        } else {
+            sign.setLine(1, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + theme);
+            sign.setLine(2, "");
+        }
+        sign.setLine(3, "=-=-=-=-=-=-=-=");
+        sign.update();
+
+    }
+
+    private byte directionToData(int direction) {
+        switch (direction % 4) {
+            case 0:
+                return 2;
+            case 1:
+                return 5;
+            case 2:
+                return 3;
+            case 3:
+                return 4;
+        }
+        return 2;
+    }
 }

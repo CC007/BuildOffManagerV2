@@ -84,12 +84,12 @@ public class Plot {
         return contestant;
     }
 
-    public void reset(Location plotLocation, byte direction, int plotSize) {
+    public void reset() {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
         bo.addResetContestant(contestant);
         this.contestant = null;
-        setBlocks(plotLocation, direction, plotSize);
-        removeEntities(plotLocation, direction, plotSize);
+        setBlocks();
+        removeEntities();
         RegionManager rgm = WGBukkit.getRegionManager(bo.getLocation().getWorld());
         DefaultDomain dd = new DefaultDomain();
         try {
@@ -105,12 +105,12 @@ public class Plot {
         }
     }
 
-    public void init(Location plotLocation, byte direction, int plotSize) {
-        setBlocks(plotLocation, direction, plotSize);
-        setRegion(plotLocation, direction, plotSize);
+    public void init() {
+        setBlocks();
+        setRegion();
     }
 
-    private void setBlocks(Location plotLocation, byte direction, int plotSize) {
+    private void setBlocks() {
         Location signLoc = LocationHelper.getLocation(plotLocation, 0, 0, 1, direction);
 
         Location slabLoc1 = plotLocation.clone();
@@ -162,7 +162,7 @@ public class Plot {
         signState.update();
     }
 
-    private void setRegion(Location plotLocation, byte direction, int plotSize) {
+    private void setRegion() {
         Location buildAreaLoc1 = LocationHelper.getLocation(plotLocation, 1, 1, 0, direction);
         BlockVector buildArea1 = new BlockVector(buildAreaLoc1.getBlockX(), 1, buildAreaLoc1.getBlockZ());
         Location buildAreaLoc2 = LocationHelper.getLocation(plotLocation, plotSize, plotSize, 0, direction);
@@ -186,7 +186,7 @@ public class Plot {
         rgm.addRegion(glowstoneAreaPcr);
     }
 
-    private void removeEntities(Location plotLocation, byte direction, int plotSize) {
+    private void removeEntities() {
         Location l1 = plotLocation.clone();
         l1.setY(0);
         Location l2 = LocationHelper.getLocation(plotLocation, plotSize + 1, plotSize + 1, 0, direction);
@@ -212,21 +212,21 @@ public class Plot {
     private byte getSignDirection(byte direction) {
         switch (direction) {
             case 0:
-                return (byte) 6;
+                return 6;
             case 1:
-                return (byte) 2;
+                return 10;
             case 2:
-                return (byte) 10;
+                return 14;
             case 3:
-                return (byte) 14;
+                return 2;
             case 4:
-                return (byte) 14;
+                return 10;
             case 5:
-                return (byte) 10;
+                return 14;
             case 6:
-                return (byte) 2;
+                return 2;
             case 7:
-                return (byte) 6;
+                return 6;
         }
         return 0;
     }

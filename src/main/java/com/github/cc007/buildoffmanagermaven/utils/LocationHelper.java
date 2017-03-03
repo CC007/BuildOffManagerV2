@@ -5,7 +5,6 @@
  */
 package com.github.cc007.buildoffmanagermaven.utils;
 
-import static com.github.cc007.buildoffmanagermaven.model.BuildOff.BORDER_WIDTH;
 import org.bukkit.Location;
 
 /**
@@ -18,18 +17,22 @@ public class LocationHelper {
         Location newLocation = startLocation.clone().subtract(startLocation);
 
         if (direction / 4 > 0) {
-            yOffset = -yOffset;
+            xOffset = -xOffset;
         }
 
-        newLocation.add(xOffset, hightOffset, yOffset);
-
         switch (direction % 4) {
+            case 0:
+                newLocation.add(xOffset, hightOffset, yOffset);
+                break;
             case 1:
-                newLocation.setYaw(newLocation.getYaw() + 90);
+                newLocation.add(-yOffset, hightOffset, xOffset);
+                break;
             case 2:
-                newLocation.setYaw(newLocation.getYaw() + 180);
+                newLocation.add(-xOffset, hightOffset, -yOffset);
+                break;
             case 3:
-                newLocation.setYaw(newLocation.getYaw() + 270);
+                newLocation.add(yOffset, hightOffset, -xOffset);
+                break;
         }
         newLocation.add(startLocation);
         return newLocation;
