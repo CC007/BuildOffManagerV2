@@ -81,6 +81,7 @@
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
             <version>1.11.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.guava</groupId>
@@ -107,6 +108,7 @@
             <groupId>org.bukkit</groupId>
             <artifactId>craftbukkit</artifactId>
             <version>1.11.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.guava</groupId>
@@ -120,10 +122,11 @@
         </dependency>
         
         <!-- Bungycord chat API -->
-        <dependency>
+        <!--dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-chat</artifactId>
             <version>1.8-SNAPSHOT</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.code.gson</groupId>
@@ -134,13 +137,14 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency-->
         
         <!-- Vault permission, chat and groups -->
         <dependency>
             <groupId>net.milkbowl.vault</groupId>
             <artifactId>Vault</artifactId>
             <version>1.6.6</version>
+            <scope>provided</scope>
         </dependency>
         
         <!-- WorldEdit and WorldGuard API -->
@@ -148,6 +152,7 @@
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-core</artifactId>
             <version>6.1.4-SNAPSHOT</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>junit</groupId>
@@ -171,11 +176,13 @@
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-legacy</artifactId>
             <version>6.2</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <!-- Build settings -->
     <build>
+        <finalName>BuildOffManager-${project.version}</finalName>
         <!-- Resource replacement -->
         <resources>
             <resource>

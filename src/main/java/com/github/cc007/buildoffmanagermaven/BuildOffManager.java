@@ -6,6 +6,7 @@
 package com.github.cc007.buildoffmanagermaven;
 
 import com.github.cc007.buildoffmanagermaven.model.BuildOff;
+import com.github.cc007.buildoffmanagermaven.utils.PersistencyHelper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -48,12 +49,14 @@ public class BuildOffManager extends JavaPlugin {
         if (vault != null) {
             setupPermissions();
         }
-        
+
         /* Setup command executor */
         getCommand("bo").setExecutor(new BuildOffManagerCommands());
-        
+
         /* Setup listeners */
         //TODO listeners
+        /* Load build off */
+        PersistencyHelper.loadBuildOff();
     }
 
     @Override
@@ -129,7 +132,7 @@ public class BuildOffManager extends JavaPlugin {
     }
 
     public static BuildOffManager getPlugin() {
-        Plugin buildOffManager = Bukkit.getServer().getPluginManager().getPlugin("TownOfPoly");
+        Plugin buildOffManager = Bukkit.getServer().getPluginManager().getPlugin("BuildOffManager");
         if (buildOffManager != null && buildOffManager.isEnabled() && buildOffManager instanceof BuildOffManager) {
             return (BuildOffManager) buildOffManager;
         } else {
@@ -189,12 +192,12 @@ public class BuildOffManager extends JavaPlugin {
         }
     }
 
-    public void loadBuildOff(){
-        if(true){}
-        //TODO
+    public void setActiveBuildOff(BuildOff activeBuildOff) {
+        this.activeBuildOff = activeBuildOff;
     }
 
     public BuildOff getActiveBuildOff() {
         return activeBuildOff;
     }
+
 }

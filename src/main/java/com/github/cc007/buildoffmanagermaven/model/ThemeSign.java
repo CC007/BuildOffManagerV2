@@ -15,10 +15,12 @@ public class ThemeSign {
 
     private String theme;
     private Location signLocation;
+    private byte direction;
 
-    public ThemeSign(String theme, Location signLocation) {
+    public ThemeSign(String theme, Location signLocation, byte direction) {
         this.theme = theme;
         this.signLocation = signLocation;
+        this.direction = direction;
     }
 
     public void setTheme(String theme) {
@@ -35,6 +37,14 @@ public class ThemeSign {
 
     public Location getSignLocation() {
         return signLocation;
+    }
+
+    public void setDirection(byte direction) {
+        this.direction = direction;
+    }
+
+    public byte getDirection() {
+        return direction;
     }
 
 }

@@ -6,6 +6,7 @@
 package com.github.cc007.buildoffmanagermaven.model;
 
 import java.util.List;
+import java.util.Map;
 import org.bukkit.Location;
 
 /**
@@ -14,12 +15,14 @@ import org.bukkit.Location;
  */
 public class OverviewBoard {
 
-    private final List<Plot> plots;
+    private final Map<Integer, Plot> plots;
     private Location location;
+    private byte direction;
 
-    public OverviewBoard(List<Plot> plots, Location location) {
+    public OverviewBoard(Map<Integer, Plot> plots, Location location, byte direction) {
         this.plots = plots;
         this.location = location;
+        this.direction = direction;
     }
 
     public Location getLocation() {
@@ -28,6 +31,10 @@ public class OverviewBoard {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public void update() {
+        //TODO
     }
 
 }

@@ -13,6 +13,10 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Minecart;
+import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 
 public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializable {
@@ -92,7 +96,7 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
     }
 
     public List<Player> getPlayers() {
-        List<Player> playerList = new ArrayList<Player>();
+        List<Player> playerList = new ArrayList<>();
         World world = this.getWorld(true);
         if (world != null) {
             List<Player> worldPlayers = world.getPlayers();
@@ -110,12 +114,12 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             }
             return playerList;
         } else {
-            return new ArrayList<Player>();
+            return new ArrayList<>();
         }
     }
 
     public List<ArmorStand> getArmorStands() {
-        List<ArmorStand> armorStandList = new ArrayList<ArmorStand>();
+        List<ArmorStand> armorStandList = new ArrayList<>();
         World world = this.getWorld(true);
         if (world != null) {
             Collection<ArmorStand> worldArmorStands = world.getEntitiesByClass(ArmorStand.class);
@@ -133,7 +137,98 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             }
             return armorStandList;
         } else {
-            return new ArrayList<ArmorStand>();
+            return new ArrayList<>();
+        }
+    }
+    
+    public List<Boat> getBoats() {
+        List<Boat> boatList = new ArrayList<>();
+        World world = this.getWorld(true);
+        if (world != null) {
+            Collection<Boat> worldBoats = world.getEntitiesByClass(Boat.class);
+            for (Boat boat : worldBoats) {
+                int boatX = boat.getLocation().getBlockX();
+                int boatY = boat.getLocation().getBlockY();
+                int boatZ = boat.getLocation().getBlockZ();
+                if (this.xPos1 <= boatX && boatX <= this.xPos2) {
+                    if (this.yPos1 <= boatY && boatY <= this.yPos2) {
+                        if (this.zPos1 <= boatZ && boatZ <= this.zPos2) {
+                            boatList.add(boat);
+                        }
+                    }
+                }
+            }
+            return boatList;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+    
+    public List<Minecart> getMinecarts() {
+        List<Minecart> minecartList = new ArrayList<>();
+        World world = this.getWorld(true);
+        if (world != null) {
+            Collection<Minecart> worldMinecarts = world.getEntitiesByClass(Minecart.class);
+            for (Minecart minecart : worldMinecarts) {
+                int minecartX = minecart.getLocation().getBlockX();
+                int minecartY = minecart.getLocation().getBlockY();
+                int minecartZ = minecart.getLocation().getBlockZ();
+                if (this.xPos1 <= minecartX && minecartX <= this.xPos2) {
+                    if (this.yPos1 <= minecartY && minecartY <= this.yPos2) {
+                        if (this.zPos1 <= minecartZ && minecartZ <= this.zPos2) {
+                            minecartList.add(minecart);
+                        }
+                    }
+                }
+            }
+            return minecartList;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+    public List<Painting> getPaintings() {
+        List<Painting> paintingList = new ArrayList<>();
+        World world = this.getWorld(true);
+        if (world != null) {
+            Collection<Painting> worldPaintings = world.getEntitiesByClass(Painting.class);
+            for (Painting painting : worldPaintings) {
+                int paintingX = painting.getLocation().getBlockX();
+                int paintingY = painting.getLocation().getBlockY();
+                int paintingZ = painting.getLocation().getBlockZ();
+                if (this.xPos1 <= paintingX && paintingX <= this.xPos2) {
+                    if (this.yPos1 <= paintingY && paintingY <= this.yPos2) {
+                        if (this.zPos1 <= paintingZ && paintingZ <= this.zPos2) {
+                            paintingList.add(painting);
+                        }
+                    }
+                }
+            }
+            return paintingList;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+    
+    public List<ItemFrame> getItemFrames() {
+        List<ItemFrame> itemFrameList = new ArrayList<>();
+        World world = this.getWorld(true);
+        if (world != null) {
+            Collection<ItemFrame> worldItemFrames = world.getEntitiesByClass(ItemFrame.class);
+            for (ItemFrame itemFrame : worldItemFrames) {
+                int itemFrameX = itemFrame.getLocation().getBlockX();
+                int itemFrameY = itemFrame.getLocation().getBlockY();
+                int itemFrameZ = itemFrame.getLocation().getBlockZ();
+                if (this.xPos1 <= itemFrameX && itemFrameX <= this.xPos2) {
+                    if (this.yPos1 <= itemFrameY && itemFrameY <= this.yPos2) {
+                        if (this.zPos1 <= itemFrameZ && itemFrameZ <= this.zPos2) {
+                            itemFrameList.add(itemFrame);
+                        }
+                    }
+                }
+            }
+            return itemFrameList;
+        } else {
+            return new ArrayList<>();
         }
     }
 

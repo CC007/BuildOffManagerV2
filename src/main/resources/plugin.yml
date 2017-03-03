@@ -1,0 +1,16 @@
+name: BuildOffManager
+version: 0.0.1
+main: com.github.cc007.buildoffmanagermaven.BuildOffManager
+author: Rik Schaaf aka CC007 (http://coolcat007.nl/)
+depend: [WorldGuard,WorldEdit]
+description: >
+             Rewritten version of the buildoff manager for Polygoncraft
+commands:
+    bo:
+        description: "All build off manager commands"
+        aliases: [bom, buildoff, bomanager, buildoffmanager]
+permissions:
+    buildoffmanager.player:
+        description: build off permissions for player commands
+    buildoffmanager.staff:
+        description: build off permissions for staff commands

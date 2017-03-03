@@ -7,11 +7,14 @@ package com.github.cc007.buildoffmanagermaven.model;
 
 import com.github.cc007.buildoffmanagermaven.BuildOffManager;
 import com.github.cc007.buildoffmanagermaven.utils.LocationHelper;
+import com.github.cc007.buildoffmanagermaven.utils.PersistencyHelper;
+import com.google.common.collect.Lists;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,25 +37,51 @@ public class BuildOff {
     private final Map<Integer, Plot> plots;
     private final Set<Contestant> resetContestants;
     private BuildOffState state;
-    private Location location;
-    private ThemeSign themeSign;
-    private OverviewBoard board;
+    private final Location location;
+    private final ThemeSign themeSign;
+    private final OverviewBoard board;
     private Date buildOffEnd;
-    private int plotsPerRow;
-    private byte direction;
-    private int plotSize;
-    private int pathWidth;
+    private final int plotsPerRow;
+    private final byte direction;
+    private final int plotSize;
+    private final int pathWidth;
     public static final int BORDER_WIDTH = 1;
 
-    public BuildOff() {
-        //TODO constructor
+    public BuildOff(int plotCount, Location location, byte direction, Location themeSignLocation, byte themeSignDirection, Location overviewBoardLocation, byte overviewBoardDirection, int plotsPerRow, int plotSize, int pathWidth) {
         this.plots = new HashMap<>();
+        this.plotsPerRow = plotsPerRow;
+        this.buildOffEnd = null;
+        this.direction = direction;
+        this.plotSize = plotSize;
+        this.pathWidth = pathWidth;
         this.resetContestants = new HashSet<>();
+        this.state = BuildOffState.DISABLED;
+        this.location = location;
+        for (int i = 0; i < plotCount; i++) {
+            plots.put(i, new Plot(i, getPlotLocation(i), direction, plotSize));
+        }
+        this.themeSign = new ThemeSign("Theme", themeSignLocation, themeSignDirection);
+        this.board = new OverviewBoard(plots, overviewBoardLocation, overviewBoardDirection);
+    }
+
+    public BuildOff(Map<Integer, Plot> plots, Set<Contestant> resetContestants, BuildOffState state, Location location, byte direction, ThemeSign themeSign, OverviewBoard board, Date buildOffEnd, int plotsPerRow, int plotSize, int pathWidth) {
+        this.plots = plots;
+        this.resetContestants = resetContestants;
+        this.state = state;
+        this.location = location;
+        this.themeSign = themeSign;
+        this.board = board;
+        this.buildOffEnd = buildOffEnd;
+        this.plotsPerRow = plotsPerRow;
+        this.direction = direction;
+        this.plotSize = plotSize;
+        this.pathWidth = pathWidth;
     }
 
     public boolean openBO() {
         if (state == BuildOffState.DISABLED) {
             state = BuildOffState.OPENED;
+            PersistencyHelper.saveBuildOff();
             return true;
         }
         return false;
@@ -154,26 +183,33 @@ public class BuildOff {
         return false;
     }
 
-    public void resetBO() {
+    public boolean resetBO() {
         if (state == BuildOffState.CLOSED) {
             state = BuildOffState.DISABLED;
             for (int plotNr : plots.keySet()) {
                 resetPlot(plotNr);
             }
+            return true;
         }
+        return false;
     }
 
     public int joinPlot(Player player) {
+        if (state != BuildOffState.OPENED && state != BuildOffState.RUNNING) {
+            return 0;
+        }
         if (getPlot(player) != null) {
             return -2;
         }
-        for (int plotNr = 1; plotNr <= plots.size(); plotNr++) {
+        for (int plotNr = 0; plotNr < plots.size(); plotNr++) {
             if (plots.get(plotNr).getContestant() == null) {
                 plots.get(plotNr).setContestant(new Contestant(player.getName(), player.getDisplayName(), player.getUniqueId()));
-                return plotNr;
+                board.update();
+                return plotNr + 1;
             }
         }
         return -1;
+
     }
 
     public Boolean leavePlot(Player player) {
@@ -189,7 +225,7 @@ public class BuildOff {
 
     public Plot getPlot(Player player) {
         for (Plot plot : plots.values()) {
-            if (player != null && player.equals(Bukkit.getPlayer(plot.getContestant().getUuid()))) {
+            if (player != null && plot.getContestant() != null && player.equals(Bukkit.getPlayer(plot.getContestant().getUuid()))) {
                 return plot;
             }
         }
@@ -198,7 +234,7 @@ public class BuildOff {
 
     public Plot getPlot(String name) {
         for (Plot plot : plots.values()) {
-            if (name != null && name.equals(plot.getContestant().getName())) {
+            if (name != null && plot.getContestant() != null && name.equals(plot.getContestant().getName())) {
                 return plot;
             }
         }
@@ -239,6 +275,7 @@ public class BuildOff {
 
     public void initPlots() {
         for (int i = 0; i < plots.size(); i++) {
+            BuildOffManager.getPlugin().getLogger().info("Init plot " + i);
             plots.get(i).init(getPlotLocation(i), direction, plotSize);
         }
         BlockVector buildArea1 = new BlockVector(location.getBlockX(), 0, location.getBlockZ());
@@ -251,6 +288,7 @@ public class BuildOff {
         ProtectedCuboidRegion boAreaPcr = new ProtectedCuboidRegion("contestcomplete", buildArea1, buildArea2);
         boAreaPcr.setPriority(3);
         RegionManager rgm = WGBukkit.getRegionManager(location.getWorld());
+        rgm.addRegion(boAreaPcr);
         try {
             rgm.save();
         } catch (StorageException ex) {
@@ -271,4 +309,13 @@ public class BuildOff {
     private int plotsPerColumn() {
         return (int) Math.ceil(((double) plots.size()) / plotsPerRow);
     }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public BuildOffState getState() {
+        return state;
+    }
+
 }

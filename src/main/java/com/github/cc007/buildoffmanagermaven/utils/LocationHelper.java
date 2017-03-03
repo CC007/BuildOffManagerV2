@@ -5,6 +5,7 @@
  */
 package com.github.cc007.buildoffmanagermaven.utils;
 
+import static com.github.cc007.buildoffmanagermaven.model.BuildOff.BORDER_WIDTH;
 import org.bukkit.Location;
 
 /**
@@ -33,4 +34,5 @@ public class LocationHelper {
         newLocation.add(startLocation);
         return newLocation;
     }
+
 }
