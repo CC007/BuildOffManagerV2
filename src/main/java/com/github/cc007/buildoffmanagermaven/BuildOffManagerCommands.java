@@ -17,9 +17,11 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 /**
@@ -118,7 +120,8 @@ public class BuildOffManagerCommands implements CommandExecutor {
                 + ChatColor.GOLD + "/bo help" + ChatColor.RESET + ": Displays this help message.";
         if (sender.hasPermission("buildoffmanager.staff")) {
             help += "\n" + ChatColor.YELLOW + " ---- " + ChatColor.GOLD + "BO Admin Commands" + ChatColor.YELLOW + " ---- \n"
-                    + ChatColor.GOLD + "/bo init" + ChatColor.RESET + ": Initialize the entire BO area.\n"
+                    + ChatColor.GOLD + "/bo init" + ChatColor.RESET + ": Initialize the BO area from your current location.\n"
+                    + ChatColor.GOLD + "/bo init <worldName> <x> <y> <z>" + ChatColor.RESET + ": Initialize the BO area from a given location.\n"
                     + ChatColor.GOLD + "/bo open" + ChatColor.RESET + ": Open the BO to allow all players to enroll.\n"
                     + ChatColor.GOLD + "/bo start" + ChatColor.RESET + ": Start the BO to allow player to build.\n"
                     + ChatColor.GOLD + "/bo stop" + ChatColor.RESET + ": End the BO to prevent players from building.\n"
@@ -130,7 +133,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
                     + ChatColor.GOLD + "/bo extendtime <time>" + ChatColor.RESET + ": Adds <time> tot he current BO.\n"
                     + ChatColor.GOLD + "/bo mail" + ChatColor.RESET + ": Mails all contestants if they want their plot saved.\n"
                     + ChatColor.GOLD + "/bo reload" + ChatColor.RESET + ": Reloads the config of this plugin.\n"
-                    + ChatColor.GOLD + "/bo cleanlegacy" + ChatColor.RESET + ": Remove WorldGuard regions from older versions.";
+                    + ChatColor.GOLD + "/bo cleanlegacy" + ChatColor.RESET + ": Remove WorldGuard regions from older versions. Note that you should perform this command before doing /bo init. Otherwise the new regions will also be cleared.";
         }
         sender.sendMessage(help);
         return true;
@@ -260,22 +263,49 @@ public class BuildOffManagerCommands implements CommandExecutor {
     }
 
     private boolean onInitCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
-        //TODO base it off of config
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Johnsole is not allowed to init the BO");
-            return false;
+        Location location;
+        if (args.length == 1) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Johnsole is not allowed to init the BO without specifying a world and location");
+                return false;
+            }
+            Player player = (Player) sender;
+            location = player.getLocation();
+        } else if (args.length == 5) {
+            int x, y, z;
+            if (((Bukkit.getWorld(args[1]) == null || !args[2].matches("-?[0-9]+")) || !args[3].matches("-?[0-9]+")) || !args[4].matches("-?[0-9]+")) {
+                message(sender, "You didn't use the command properly. Use /bo init <worldName> <x> <y> <z>", ChatColor.RED);
+                return true;
+            } else {
+                World world = Bukkit.getWorld(args[1]);
+                x = Integer.parseInt(args[2]);
+                y = Integer.parseInt(args[3]);
+                z = Integer.parseInt(args[4]);
+                location = new Location(world, x, y, z);
+            }
+        } else {
+            message(sender, "You didn't use the command properly. Use /bo init or use /bo init <worldName> <x> <y> <z>", ChatColor.RED);
+            return true;
         }
-        Player player = (Player) sender;
-        int plotCount = 36;
-        int plotsPerRow = 6;
-        int plotSize = 31;
-        int pathWidth = 5;
-        Location location = player.getLocation();
-        byte direction = 4;
-        Location themeSignLocation = LocationHelper.getLocation(player.getLocation(), 6, -10, 1, direction);
-        byte themeSignDirection = 4;
-        Location overviewBoardLocation = LocationHelper.getLocation(player.getLocation(), 10, -10, 1, direction);
-        byte overviewBoardDirection = 4;
+        FileConfiguration config = BuildOffManager.getPlugin().getConfig();
+        int plotCount = config.getInt("plotCount");
+        int plotsPerRow = config.getInt("plotsPerRow");
+        int plotSize = config.getInt("plotSize");
+        int pathWidth = config.getInt("pathWidth");
+
+        String directionName = config.getString("direction");
+        boolean mirrored = config.getBoolean("mirrored");
+        byte direction = nameToDirection(directionName, mirrored);
+
+        Location themeSignLocation = LocationHelper.getLocation(location, config.getInt("themeSign.relativeX"), config.getInt("themeSign.relativeZ"), config.getInt("themeSign.relativeY"), direction);
+        String themeSignDirectionName = config.getString("themeSign.direction");
+        byte themeSignDirection = nameToSignDirection(themeSignDirectionName, false);
+
+        Location overviewBoardLocation = LocationHelper.getLocation(location, config.getInt("overviewBoard.relativeX"), config.getInt("overviewBoard.relativeZ"), config.getInt("overviewBoard.relativeY"), direction);
+        String overviewBoardDirectionName = config.getString("overviewBoard.direction");
+        boolean overviewBoardMirrored = config.getBoolean("overviewBoard.mirrored");
+        byte overviewBoardDirection = nameToSignDirection(overviewBoardDirectionName, overviewBoardMirrored);
+
         BuildOffManager.getPlugin().setActiveBuildOff(
                 new BuildOff(plotCount,
                         location, direction,
@@ -437,15 +467,61 @@ public class BuildOffManagerCommands implements CommandExecutor {
     }
 
     private boolean onCleanLegacyCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        BuildOffManager.getPlugin().legacyClear();
+        message(sender, "The legacy regions have been cleared. Note that this will also clear the regions for this plugin, so you are required to do /bo init after this command.", ChatColor.GOLD);
+        return true;
     }
 
-    private void message(CommandSender sender, String message, ChatColor color) {
+    public static void message(CommandSender sender, String message, ChatColor color) {
         if (sender instanceof Player) {
             sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + color + message);
         } else {
             sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + message);
         }
+    }
+
+    private byte nameToDirection(String directionName, boolean mirrored) {
+        byte direction = 0;
+        switch (directionName.toLowerCase()) {
+            case "southwest":
+                direction += 4;
+                break;
+            case "northwest":
+                direction += 5;
+                break;
+            case "northeast":
+                direction += 6;
+                break;
+            case "southeast":
+                direction += 7;
+                break;
+        }
+        if (mirrored) {
+            direction -= 4;
+        }
+        return direction;
+    }
+
+    private byte nameToSignDirection(String directionName, boolean mirrored) {
+        byte direction = 0;
+        switch (directionName.toLowerCase()) {
+            case "south":
+                direction += 4;
+                break;
+            case "west":
+                direction += 5;
+                break;
+            case "north":
+                direction += 6;
+                break;
+            case "east":
+                direction += 7;
+                break;
+        }
+        if (mirrored) {
+            direction -= 4;
+        }
+        return direction;
     }
 
 }

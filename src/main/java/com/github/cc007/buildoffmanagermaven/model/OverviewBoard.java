@@ -30,6 +30,7 @@ public class OverviewBoard {
         this.location = location;
         this.direction = direction;
         this.plotsPerRow = plotsPerRow;
+        //TODO region for overview board
     }
 
     public Location getLocation() {

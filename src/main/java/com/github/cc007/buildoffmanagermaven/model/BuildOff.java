@@ -14,6 +14,7 @@ import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -323,5 +324,15 @@ public class BuildOff {
     public BuildOffState getState() {
         return state;
     }
+
+    public int getPlotsPerRow() {
+        return plotsPerRow;
+    }
+
+    public OverviewBoard getOverviewBoard() {
+        return board;
+    }
+    
+    
 
 }

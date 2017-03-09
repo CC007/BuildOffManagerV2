@@ -1,1 +1,53 @@
-stuff: foo
+# The name of the world used by the legacy Build Off Manager
+legacyWorld: BuildOff
+
+# Number of plots in the Build Off
+plotCount: 60
+
+# Number of plots on every row in the Build Off
+plotsPerRow: 6
+
+# The outer size of a plot (including the border)
+plotSize: 33
+
+# The width of the path between the plots
+pathWidth: 5
+
+# The direction that the plots expand (southwest means rows to the west, columns to the south
+direction: southwest
+
+# If true, the row direction is mirrored, the column direction will be unchanged
+mirrored: false
+
+# Theme sign specific configuration 
+themeSign:
+    # X, Y and Z position relative to the Build Off init location (the place you stand when doing /bo init). 
+    # Note that the X and Z are affected by the direction and rotation of the Build Off
+    # This means that when rotating the Build Off, the location of the theme sign automatically gets rotated with it too.
+    relativeX: 2
+    relativeY: 1
+    relativeZ: -10
+    
+    # The direction you face when looking at the sign
+    direction: south
+    
+# Overview board specific configuration 
+overviewBoard:
+    # X, Y and Z position of the overview board's first plot sign 
+    # This is relative to the Build Off init location (the place you stand when doing /bo init). 
+    # Note that the X and Z are affected by the direction and rotation of the Build Off
+    # This means that when rotating the Build Off, the location of the overview board automatically gets rotated with it too.
+    relativeX: 6
+    relativeY: 1
+    relativeZ: -10
+    
+    # The direction you face when looking at the overview board.
+    # The board will put rows left to right and columns bottom to top.
+    # If mirrored is true, rows are instead right to left
+    direction: south
+    mirrored: false
+    
+stream: 
+#Set enabled to false if you dont want a streamlink to be posted at the end of a Build Off
+  enabled: true
+  link: "http://www.Twitch.tv/FlexoTV"

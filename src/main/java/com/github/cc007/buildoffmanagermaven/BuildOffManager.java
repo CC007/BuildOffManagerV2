@@ -7,6 +7,9 @@ package com.github.cc007.buildoffmanagermaven;
 
 import com.github.cc007.buildoffmanagermaven.model.BuildOff;
 import com.github.cc007.buildoffmanagermaven.utils.PersistencyHelper;
+import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,7 +57,9 @@ public class BuildOffManager extends JavaPlugin {
         getCommand("bo").setExecutor(new BuildOffManagerCommands());
 
         /* Setup listeners */
-        //TODO listeners
+        getServer().getPluginManager().registerEvents(new OverviewBoardClickEvent(), this);
+        
+        
         /* Load build off */
         PersistencyHelper.loadBuildOff();
     }
@@ -200,4 +205,17 @@ public class BuildOffManager extends JavaPlugin {
         return activeBuildOff;
     }
 
+    public void legacyClear() {
+        RegionManager rgm = WGBukkit.getRegionManager(Bukkit.getWorld(getConfig().getString("legacyWorld")));
+        for (String regionName : rgm.getRegions().keySet()) {
+            if (regionName.startsWith("plot")) {
+                rgm.removeRegion(regionName);
+            }
+        }
+        try {
+            rgm.save();
+        } catch (StorageException ex) {
+            Logger.getLogger(BuildOff.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

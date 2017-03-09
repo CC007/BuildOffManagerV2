@@ -24,6 +24,7 @@ public class ThemeSign {
         this.theme = theme;
         this.signLocation = signLocation;
         this.direction = direction;
+        //TODO region for theme sign
     }
 
     public void setTheme(String theme) {
@@ -40,10 +41,6 @@ public class ThemeSign {
 
     public Location getSignLocation() {
         return signLocation;
-    }
-
-    public void setDirection(byte direction) {
-        this.direction = direction;
     }
 
     public byte getDirection() {
