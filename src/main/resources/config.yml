@@ -26,7 +26,7 @@ themeSign:
     # This means that when rotating the Build Off, the location of the theme sign automatically gets rotated with it too.
     relativeX: 2
     relativeY: 1
-    relativeZ: -10
+    relativeZ: -8
     
     # The direction you face when looking at the sign
     direction: south
@@ -39,7 +39,7 @@ overviewBoard:
     # This means that when rotating the Build Off, the location of the overview board automatically gets rotated with it too.
     relativeX: 6
     relativeY: 1
-    relativeZ: -10
+    relativeZ: -8
     
     # The direction you face when looking at the overview board.
     # The board will put rows left to right and columns bottom to top.

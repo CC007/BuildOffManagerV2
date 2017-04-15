@@ -8,14 +8,11 @@ package com.github.cc007.buildoffmanagermaven.model;
 import com.github.cc007.buildoffmanagermaven.BuildOffManager;
 import com.github.cc007.buildoffmanagermaven.utils.LocationHelper;
 import com.github.cc007.buildoffmanagermaven.utils.PersistencyHelper;
-import com.google.common.collect.Lists;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -279,7 +276,10 @@ public class BuildOff {
     }
 
     public void initPlots() {
-        for (int i = 0; i < plots.size(); i++) {
+        initPlots(0, 3);
+    }
+    public void initPlots(int startPlot, int priority) {
+        for (int i = startPlot; i < plots.size(); i++) {
             BuildOffManager.getPlugin().getLogger().info("Init plot " + i);
             plots.get(i).init();
         }
@@ -291,8 +291,9 @@ public class BuildOff {
         Location buildAreaLoc2 = LocationHelper.getLocation(location, boSizeX, boSizeY, 0, direction);
         BlockVector buildArea2 = new BlockVector(buildAreaLoc2.getBlockX(), 255, buildAreaLoc2.getBlockZ());
         ProtectedCuboidRegion boAreaPcr = new ProtectedCuboidRegion("contestcomplete", buildArea1, buildArea2);
-        boAreaPcr.setPriority(3);
+        boAreaPcr.setPriority(priority);
         RegionManager rgm = WGBukkit.getRegionManager(location.getWorld());
+        rgm.removeRegion("contestcomplete");
         rgm.addRegion(boAreaPcr);
         try {
             rgm.save();
@@ -303,7 +304,14 @@ public class BuildOff {
         themeSign.update(true);
     }
 
-    private Location getPlotLocation(int plotNr) {
+    public void extendTime(int minutes){
+            Calendar c = Calendar.getInstance();
+            c.setTime(new Date());
+            c.add(Calendar.MINUTE, minutes);
+            buildOffEnd = c.getTime();
+    }
+    
+    public Location getPlotLocation(int plotNr) {
         int xPlot = plotNr % plotsPerRow;
         int yPlot = plotNr / plotsPerRow;
 
@@ -332,6 +340,16 @@ public class BuildOff {
     public OverviewBoard getOverviewBoard() {
         return board;
     }
+
+    public byte getDirection() {
+        return direction;
+    }
+
+    public int getPlotSize() {
+        return plotSize;
+    }
+    
+    
     
     
 

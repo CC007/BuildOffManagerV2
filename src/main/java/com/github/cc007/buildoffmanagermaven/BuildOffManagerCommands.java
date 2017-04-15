@@ -9,15 +9,19 @@ import com.github.cc007.buildoffmanagermaven.model.BuildOff;
 import com.github.cc007.buildoffmanagermaven.model.BuildOffState;
 import com.github.cc007.buildoffmanagermaven.model.Contestant;
 import com.github.cc007.buildoffmanagermaven.model.Plot;
+import com.github.cc007.buildoffmanagermaven.utils.Cuboid;
 import com.github.cc007.buildoffmanagermaven.utils.LocationHelper;
 import com.github.cc007.buildoffmanagermaven.utils.PersistencyHelper;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,6 +33,21 @@ import org.bukkit.entity.Player;
  * @author Rik Schaaf aka CC007 (http://coolcat007.nl/)
  */
 public class BuildOffManagerCommands implements CommandExecutor {
+
+    private static final Map<String, Biome> biomeMap = new HashMap<>();
+
+    static {
+        biomeMap.put("FOREST", Biome.FOREST);
+        biomeMap.put("SKY", Biome.SKY);
+        biomeMap.put("TAIGA_COLD", Biome.TAIGA_COLD);
+        biomeMap.put("DESERT", Biome.DESERT);
+        biomeMap.put("MESA", Biome.MESA);
+        biomeMap.put("BIRCH_FOREST", Biome.BIRCH_FOREST);
+        biomeMap.put("JUNGLE", Biome.JUNGLE);
+        biomeMap.put("ROOFED_FOREST", Biome.ROOFED_FOREST);
+        biomeMap.put("SWAMPLAND", Biome.SWAMPLAND);
+        biomeMap.put("PLAINS", Biome.PLAINS);
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
@@ -61,6 +80,10 @@ public class BuildOffManagerCommands implements CommandExecutor {
             case "time":
             case "endtime":
                 return onTimeCommand(sender, cmd, cmdAlias, args);
+            case "biome":
+                return onBiomeCommand(sender, cmd, cmdAlias, args);
+            case "preset":
+                return onPresetCommand(sender, cmd, cmdAlias, args);
         }
 
         if (!sender.hasPermission("buildoffmanager.staff")) {
@@ -184,6 +207,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
         } else {
             message(sender, "The Build Off can only be reset if it has been closed", ChatColor.RED);
         }
+        BuildOffManager.getPlugin().getActiveBuildOff().getOverviewBoard().update();
         return true;
     }
 
@@ -198,10 +222,11 @@ public class BuildOffManagerCommands implements CommandExecutor {
             return true;
         }
         if (args[1].matches("[0-9]+")) {
-            bo.resetPlot(Integer.parseInt(args[1]), sender);
+            bo.resetPlot(Integer.parseInt(args[1]) - 1, sender);
         } else {
             bo.resetPlot(args[1], sender);
         }
+        BuildOffManager.getPlugin().getActiveBuildOff().getOverviewBoard().update();
         PersistencyHelper.saveBuildOff();
         return true;
     }
@@ -239,7 +264,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
     public boolean onLeaveCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
         if (!(sender instanceof Player)) {
-            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Johnsole is not allowed to leave the BO");
+            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Johnsole is not allowed to leave the BO.");
             return false;
         }
         if (bo == null) {
@@ -296,12 +321,29 @@ public class BuildOffManagerCommands implements CommandExecutor {
         String directionName = config.getString("direction");
         boolean mirrored = config.getBoolean("mirrored");
         byte direction = nameToDirection(directionName, mirrored);
-
-        Location themeSignLocation = LocationHelper.getLocation(location, config.getInt("themeSign.relativeX"), config.getInt("themeSign.relativeZ"), config.getInt("themeSign.relativeY"), direction);
+        Location themeSignLocation = null;
+        System.out.println(config.get("themeSign.relativeX"));
+        if (config.get("themeSign.absoluteX") == null) {
+            if (config.get("themeSign.relativeX") == null) {
+                message(sender, "The config doesn't contain the position for theme signs. Initialization was cancelled.", ChatColor.RED);
+                return true;
+            }
+            themeSignLocation = LocationHelper.getLocation(location, config.getInt("themeSign.relativeX"), config.getInt("themeSign.relativeZ"), config.getInt("themeSign.relativeY"), direction);
+        } else {
+            themeSignLocation = new Location(location.getWorld(), config.getInt("themeSign.absoluteX"), config.getInt("themeSign.absoluteY"), config.getInt("themeSign.absoluteZ"));
+        }
         String themeSignDirectionName = config.getString("themeSign.direction");
         byte themeSignDirection = nameToSignDirection(themeSignDirectionName, false);
-
-        Location overviewBoardLocation = LocationHelper.getLocation(location, config.getInt("overviewBoard.relativeX"), config.getInt("overviewBoard.relativeZ"), config.getInt("overviewBoard.relativeY"), direction);
+        Location overviewBoardLocation;
+        if (config.get("overviewBoard.absoluteX") == null) {
+            if (config.get("overviewBoard.relativeX") == null) {
+                message(sender, "The config doesn't contain the position for overview board. Initialization was cancelled.", ChatColor.RED);
+                return true;
+            }
+            overviewBoardLocation = LocationHelper.getLocation(location, config.getInt("overviewBoard.relativeX"), config.getInt("overviewBoard.relativeZ"), config.getInt("overviewBoard.relativeY"), direction);
+        } else {
+            overviewBoardLocation = new Location(location.getWorld(), config.getInt("overviewBoard.absoluteX"), config.getInt("overviewBoard.absoluteY"), config.getInt("overviewBoard.absoluteZ"));
+        }
         String overviewBoardDirectionName = config.getString("overviewBoard.direction");
         boolean overviewBoardMirrored = config.getBoolean("overviewBoard.mirrored");
         byte overviewBoardDirection = nameToSignDirection(overviewBoardDirectionName, overviewBoardMirrored);
@@ -331,10 +373,13 @@ public class BuildOffManagerCommands implements CommandExecutor {
         List<String> resetContestants = new LinkedList<>();
 
         for (Plot plot : bo.getPlots().values()) {
-            if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(plot.getContestant().getName()))) {
-                onlineContestants.add(plot.getContestant().getName());
-            } else {
-                offlineContestants.add(plot.getContestant().getName());
+            Contestant contestant = plot.getContestant();
+            if (contestant != null) {
+                if (Bukkit.getOnlinePlayers().contains(Bukkit.getPlayer(contestant.getName()))) {
+                    onlineContestants.add(plot.getContestant().getName());
+                } else {
+                    offlineContestants.add(plot.getContestant().getName());
+                }
             }
         }
         BuildOffManager.getPlugin().getActiveBuildOff().getResetContestants().stream().map(Contestant::getName).forEach((name) -> resetContestants.add(name));
@@ -383,6 +428,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
             }
         }
         Location tpLocation = LocationHelper.getLocation(tpPlot.getPlotLocation(), -3, -3, 0, tpPlot.getDirection());
+        tpLocation.add(0.5, 0, 0.5);
         tpLocation.setYaw(45.0f);
         tpLocation.setPitch(0.0f);
         player.teleport(tpLocation);
@@ -417,8 +463,22 @@ public class BuildOffManagerCommands implements CommandExecutor {
 
     private boolean onExpandSizeCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
+        int oldPlotSize = bo.getPlots().size();
+        if (args.length != 2) {
+            message(sender, "You didn't specify the amount by which to expand!", ChatColor.RED);
+            return true;
+        }
+        if (!args[1].matches("[0-9]+")) {
+            message(sender, "Invalid input! You need to give the amount of plots to expand.", ChatColor.RED);
+            return true;
+        }
+        int newPlotSize = oldPlotSize + Integer.parseInt(args[1]);
+        for (int i = oldPlotSize; i < newPlotSize; i++) {
+            bo.getPlots().put(i, new Plot(i, bo.getPlotLocation(i), bo.getDirection(), bo.getPlotSize()));
+        }
+        bo.initPlots(oldPlotSize, bo.getState() == BuildOffState.RUNNING ? 0 : 3);
         PersistencyHelper.saveBuildOff();
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
 
     private boolean onReloadCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
@@ -433,8 +493,17 @@ public class BuildOffManagerCommands implements CommandExecutor {
 
     private boolean onExtendTimeCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
+        if (args.length != 2) {
+            message(sender, "You didn't specify the amount of extended time.", ChatColor.RED);
+            return true;
+        }
+        if (!args[1].matches("[0-9]+")) {
+            message(sender, "Invalid input! You need to specify the amount of extended time.", ChatColor.RED);
+            return true;
+        }
+        bo.extendTime(Integer.parseInt(args[1]));
         PersistencyHelper.saveBuildOff();
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
 
     private boolean onTimeCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
@@ -463,13 +532,76 @@ public class BuildOffManagerCommands implements CommandExecutor {
 
     private boolean onMailCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (BuildOffManager.getPlugin().getCommand("mail").getExecutor() == null) {
+            message(sender, "The mail command was not found. Please message the players manually.", ChatColor.RED);
+            return true;
+        }
+        String theme = bo.getThemeSign().getTheme();
+        for (Plot plot : bo.getPlots().values()) {
+            if (plot.getContestant() != null) {
+                String playerName = plot.getContestant().getName();
+                Bukkit.dispatchCommand(sender, "mail send " + playerName + " Do you want your plot from the " + theme + " Build Off saved to a creative world? If so, please do /ticket with the world and coordinates.\nExample: /ticket Save plot to 420 64 -1337 in Mirum");
+            }
+        }
+        return true;
     }
 
     private boolean onCleanLegacyCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOffManager.getPlugin().legacyClear();
         message(sender, "The legacy regions have been cleared. Note that this will also clear the regions for this plugin, so you are required to do /bo init after this command.", ChatColor.GOLD);
         return true;
+    }
+
+    private boolean onBiomeCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
+        BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Johnsole is not allowed to change the biome of his plot.");
+            return false;
+        }
+        if (bo == null) {
+            message(sender, "You did not join the Build Off yet and are therefore you can't change your plot's biome.", ChatColor.RED);
+            return true;
+        }
+        if(bo.getState()!= BuildOffState.RUNNING){
+            message(sender, "You can only set the biome of your plot once the Build Off has started.", ChatColor.RED);
+            return true;
+        }
+        if (args.length != 2) {
+            message(sender, "You didn't specify the biome.", ChatColor.RED);
+            return true;
+        }
+        Player player = (Player) sender;
+        Plot plot = bo.getPlot(player);
+        if (plot == null) {
+            message(sender, "You did not join the Build Off yet and are therefore you can't change your plot's biome.", ChatColor.RED);
+            return true;
+        }
+        Location pos1 = LocationHelper.getLocation(plot.getPlotLocation(), -1, -1, 0, bo.getDirection());
+        Location pos2 = LocationHelper.getLocation(plot.getPlotLocation(), plot.getPlotSize() + 3, plot.getPlotSize() + 3, 0, bo.getDirection());
+        Cuboid c = new Cuboid(pos1, pos2);
+        Biome b = biomeMap.get(args[1].toUpperCase());
+        if (b == null) {
+            String message = "This biome is not supported. Please pick one of the following biomes:\n";
+            for (String biomeName : biomeMap.keySet()) {
+                message += " - " + biomeName + "\n";
+            }
+            message(sender, message, ChatColor.RED);
+            return true;
+        }
+        Bukkit.getScheduler().runTask(BuildOffManager.getPlugin(), new Runnable() {
+            @Override
+            public void run() {
+                c.setBiome(b);
+            }
+        });
+        message(sender, "The biome has been changed. To see the changes you need to reload the world.", ChatColor.GREEN);
+        return true;
+    }
+
+    private boolean onPresetCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
+        BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
+        PersistencyHelper.saveBuildOff();
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public static void message(CommandSender sender, String message, ChatColor color) {

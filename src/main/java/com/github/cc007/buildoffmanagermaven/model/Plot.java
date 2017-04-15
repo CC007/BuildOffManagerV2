@@ -85,6 +85,9 @@ public class Plot {
     }
 
     public void reset() {
+        if (contestant == null) {
+            return;
+        }
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
         bo.addResetContestant(contestant);
         this.contestant = null;

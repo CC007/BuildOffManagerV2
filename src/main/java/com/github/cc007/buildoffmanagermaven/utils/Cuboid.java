@@ -10,6 +10,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.ArmorStand;
@@ -140,7 +141,7 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             return new ArrayList<>();
         }
     }
-    
+
     public List<Boat> getBoats() {
         List<Boat> boatList = new ArrayList<>();
         World world = this.getWorld(true);
@@ -163,7 +164,7 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             return new ArrayList<>();
         }
     }
-    
+
     public List<Minecart> getMinecarts() {
         List<Minecart> minecartList = new ArrayList<>();
         World world = this.getWorld(true);
@@ -186,6 +187,7 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             return new ArrayList<>();
         }
     }
+
     public List<Painting> getPaintings() {
         List<Painting> paintingList = new ArrayList<>();
         World world = this.getWorld(true);
@@ -208,7 +210,7 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             return new ArrayList<>();
         }
     }
-    
+
     public List<ItemFrame> getItemFrames() {
         List<ItemFrame> itemFrameList = new ArrayList<>();
         World world = this.getWorld(true);
@@ -229,6 +231,14 @@ public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializ
             return itemFrameList;
         } else {
             return new ArrayList<>();
+        }
+    }
+
+    public void setBiome(Biome biome) {
+        for (int x = xPos1; x < xPos2; x++) {
+            for (int z = zPos1; z < zPos2; z++) {
+                Bukkit.getWorld(worldName).setBiome(x, z, biome);
+            }
         }
     }
 

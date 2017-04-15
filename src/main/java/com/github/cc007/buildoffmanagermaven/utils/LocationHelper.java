@@ -13,7 +13,7 @@ import org.bukkit.Location;
  */
 public class LocationHelper {
 
-    public static Location getLocation(Location startLocation, int xOffset, int yOffset, int hightOffset, byte direction) {
+    public static Location getLocation(Location startLocation, int xOffset, int yOffset, int heightOffset, byte direction) {
         Location newLocation = startLocation.clone().subtract(startLocation);
 
         if (direction / 4 > 0) {
@@ -22,16 +22,16 @@ public class LocationHelper {
 
         switch (direction % 4) {
             case 0:
-                newLocation.add(xOffset, hightOffset, yOffset);
+                newLocation.add(xOffset, heightOffset, yOffset);
                 break;
             case 1:
-                newLocation.add(-yOffset, hightOffset, xOffset);
+                newLocation.add(-yOffset, heightOffset, xOffset);
                 break;
             case 2:
-                newLocation.add(-xOffset, hightOffset, -yOffset);
+                newLocation.add(-xOffset, heightOffset, -yOffset);
                 break;
             case 3:
-                newLocation.add(yOffset, hightOffset, -xOffset);
+                newLocation.add(yOffset, heightOffset, -xOffset);
                 break;
         }
         newLocation.add(startLocation);

@@ -53,10 +53,10 @@ public class ThemeSign {
         Sign sign = (Sign) signLocation.getBlock().getState();
         sign.setLine(0, "=-=-=-=-=-=-=-=");
         if (secret) {
-            sign.setLine(1, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Secret till");
-            sign.setLine(2, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "the start");
+            sign.setLine(1, ChatColor.BOLD + "Secret till");
+            sign.setLine(2, ChatColor.BOLD + "the start");
         } else {
-            sign.setLine(1, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + theme);
+            sign.setLine(1, ChatColor.BOLD + theme);
             sign.setLine(2, "");
         }
         sign.setLine(3, "=-=-=-=-=-=-=-=");

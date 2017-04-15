@@ -42,9 +42,8 @@ public class OverviewBoard {
     }
 
     public void update() {
-        //workaround for the fact that the gson breaks the link between plots here and in the BuildOff class
         plots = BuildOffManager.getPlugin().getActiveBuildOff().getPlots();
-        
+
         for (int plotNr = 0; plotNr < plots.size(); plotNr++) {
             int xPlot = plotNr % plotsPerRow;
             int yPlot = plotNr / plotsPerRow;
@@ -53,15 +52,17 @@ public class OverviewBoard {
             Block b = signLocation.getWorld().getBlockAt(signLocation);
             b.setType(Material.WALL_SIGN);
             b.setData(directionToData(direction));
-            String contestantName = "";
+            String contestantName;
             Contestant contestant = plots.get(plotNr).getContestant();
             if (contestant != null) {
                 contestantName = contestant.getName();
+                Sign s = (Sign) b.getState();
+                s.setLine(0, ChatColor.DARK_BLUE + "<" + ChatColor.BLUE + (plotNr + 1) + ChatColor.DARK_BLUE + ">");
+                s.setLine(2, contestantName);
+                s.update();
+            } else {
+                b.setType(Material.AIR);
             }
-            Sign s = (Sign) b.getState();
-            s.setLine(0, ChatColor.DARK_BLUE + "<" + ChatColor.BLUE + (plotNr + 1) + ChatColor.DARK_BLUE + ">");
-            s.setLine(2, contestantName);
-            s.update();
         }
     }
 

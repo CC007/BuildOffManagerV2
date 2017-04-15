@@ -12,7 +12,6 @@ import com.github.cc007.buildoffmanagermaven.utils.LocationHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -62,6 +61,7 @@ public class OverviewBoardClickEvent implements Listener {
             return;
         }
         Location tpLocation = LocationHelper.getLocation(tpPlot.getPlotLocation(), -3, -3, 0, tpPlot.getDirection());
+        tpLocation.add(0.5, 0, 0.5);
         tpLocation.setYaw(45.0f);
         tpLocation.setPitch(0.0f);
         p.teleport(tpLocation);
