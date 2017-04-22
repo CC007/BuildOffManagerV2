@@ -188,6 +188,7 @@ public class BuildOff {
             for (int plotNr : plots.keySet()) {
                 resetPlot(plotNr);
             }
+            clearResetContestants();
             themeSign.update(true);
             return true;
         }

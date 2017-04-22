@@ -1,5 +1,5 @@
 name: BuildOffManager
-version: 0.1.1
+version: 3.0.0
 main: com.github.cc007.buildoffmanagermaven.BuildOffManager
 author: Rik Schaaf aka CC007 (http://coolcat007.nl/)
 depend: [WorldGuard,WorldEdit]

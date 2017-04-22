@@ -140,6 +140,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
                 + ChatColor.GOLD + "/bo tp <number>" + ChatColor.RESET + ": Teleport to plot <number>.\n"
                 + ChatColor.GOLD + "/bo tp <name>" + ChatColor.RESET + ": Teleport to the plot of <name>.\n"
                 + ChatColor.GOLD + "/bo time" + ChatColor.RESET + ": Displays the time until the end of the Build Off.\n"
+                + ChatColor.GOLD + "/bo biome <biomeName>" + ChatColor.RESET + ": Changes the biome of your plot.\n"
                 + ChatColor.GOLD + "/bo help" + ChatColor.RESET + ": Displays this help message.";
         if (sender.hasPermission("buildoffmanager.staff")) {
             help += "\n" + ChatColor.YELLOW + " ---- " + ChatColor.GOLD + "BO Admin Commands" + ChatColor.YELLOW + " ---- \n"
@@ -382,7 +383,13 @@ public class BuildOffManagerCommands implements CommandExecutor {
                 }
             }
         }
-        BuildOffManager.getPlugin().getActiveBuildOff().getResetContestants().stream().map(Contestant::getName).forEach((name) -> resetContestants.add(name));
+        BuildOffManager
+                .getPlugin()
+                .getActiveBuildOff()
+                .getResetContestants()
+                .stream()
+                .map(Contestant::getName)
+                .forEach((name) -> resetContestants.add(name));
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             if (!onlineContestants.contains(onlinePlayer.getName()) && !resetContestants.contains(onlinePlayer.getName())) {
                 onlineNonContestants.add(onlinePlayer.getName());
