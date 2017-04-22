@@ -223,9 +223,9 @@ public class BuildOffManagerCommands implements CommandExecutor {
             return true;
         }
         if (args[1].matches("[0-9]+")) {
-            bo.resetPlot(Integer.parseInt(args[1]) - 1, sender);
+            bo.resetPlot(Integer.parseInt(args[1]) - 1, true, sender);
         } else {
-            bo.resetPlot(args[1], sender);
+            bo.resetPlot(args[1], true, sender);
         }
         BuildOffManager.getPlugin().getActiveBuildOff().getOverviewBoard().update();
         PersistencyHelper.saveBuildOff();
@@ -396,8 +396,8 @@ public class BuildOffManagerCommands implements CommandExecutor {
             }
         }
         message(sender, "Player list:", ChatColor.GOLD);
-        sender.sendMessage("Online contestants:" + ChatColor.GREEN + String.join(", ", onlineContestants));
-        sender.sendMessage("Offline contestants:" + ChatColor.YELLOW + String.join(", ", offlineContestants));
+        sender.sendMessage("Online contestants: " + ChatColor.GREEN + String.join(", ", onlineContestants));
+        sender.sendMessage("Offline contestants: " + ChatColor.YELLOW + String.join(", ", offlineContestants));
         sender.sendMessage("Players that left the bo: " + ChatColor.GRAY + String.join(", ", resetContestants));
         sender.sendMessage("Other online players: " + ChatColor.RED + String.join(", ", onlineNonContestants));
         return true;
@@ -484,6 +484,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
             bo.getPlots().put(i, new Plot(i, bo.getPlotLocation(i), bo.getDirection(), bo.getPlotSize()));
         }
         bo.initPlots(oldPlotSize, bo.getState() == BuildOffState.RUNNING ? 0 : 3);
+        message(sender, "Build Off size expanded from " + oldPlotSize + " plots to " + newPlotSize + " plots.", ChatColor.GREEN);
         PersistencyHelper.saveBuildOff();
         return true;
     }
@@ -509,6 +510,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
             return true;
         }
         bo.extendTime(Integer.parseInt(args[1]));
+        message(sender, "You have extended the Build Off time by " + args[1] + " minutes.", ChatColor.GREEN);
         PersistencyHelper.saveBuildOff();
         return true;
     }
@@ -533,13 +535,17 @@ public class BuildOffManagerCommands implements CommandExecutor {
         if (!"".equals(totalTime) || bo.secondsToBOEnd() > 0) {
             totalTime += (bo.secondsToBOEnd() % 60) + "s";
         }
-        message(sender, "You have " + totalTime + " left to complete your build.", ChatColor.GOLD);
+        if ("".equals(totalTime)) {
+            message(sender, "The Build Off will end any minute now.", ChatColor.GOLD);
+        } else {
+            message(sender, "You have " + totalTime + " left to complete your build.", ChatColor.GOLD);
+        }
         return true;
     }
 
     private boolean onMailCommand(CommandSender sender, Command cmd, String cmdAlias, String[] args) {
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
-        if (BuildOffManager.getPlugin().getCommand("mail").getExecutor() == null) {
+        if (Bukkit.getCommandAliases().keySet().contains("mail")) {
             message(sender, "The mail command was not found. Please message the players manually.", ChatColor.RED);
             return true;
         }
@@ -569,7 +575,7 @@ public class BuildOffManagerCommands implements CommandExecutor {
             message(sender, "You did not join the Build Off yet and are therefore you can't change your plot's biome.", ChatColor.RED);
             return true;
         }
-        if(bo.getState()!= BuildOffState.RUNNING){
+        if (bo.getState() != BuildOffState.RUNNING) {
             message(sender, "You can only set the biome of your plot once the Build Off has started.", ChatColor.RED);
             return true;
         }

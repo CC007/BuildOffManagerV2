@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -126,59 +127,59 @@ public class BuildOff {
         return false;
     }
 
-    public boolean resetPlot(int plotNr) {
+    public boolean resetPlot(int plotNr, boolean hardReset) {
         Plot plot = plots.get(plotNr);
         if (plot != null) {
-            plot.reset();
+            plot.reset(hardReset);
             return true;
         }
 
         return false;
     }
 
-    public boolean resetPlot(int plotNr, CommandSender sender) {
-        if (resetPlot(plotNr)) {
-            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Plot " + plotNr + " is reset.");
+    public boolean resetPlot(int plotNr, boolean hardReset, CommandSender sender) {
+        if (resetPlot(plotNr, hardReset)) {
+            sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + ChatColor.GREEN + "Plot " + (plotNr + 1) + " is reset.");
             return true;
         }
-        sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "Plot " + plotNr + " doesn't exist.");
+        sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + ChatColor.RED + "Plot " + (plotNr + 1) + " doesn't exist.");
         return false;
     }
 
-    public boolean resetPlot(Player player) {
+    public boolean resetPlot(Player player, boolean hardReset) {
         for (Map.Entry<Integer, Plot> plotEntry : plots.entrySet()) {
             if (player != null && plotEntry.getValue().getContestant() != null && player.equals(Bukkit.getPlayer(plotEntry.getValue().getContestant().getUuid()))) {
-                return resetPlot(plotEntry.getKey());
+                return resetPlot(plotEntry.getKey(), hardReset);
 
             }
         }
         return false;
     }
 
-    public boolean resetPlot(Player player, CommandSender sender) {
-        if (resetPlot(player)) {
-            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "The plot of " + player.getName() + " is reset.");
+    public boolean resetPlot(Player player, boolean hardReset, CommandSender sender) {
+        if (resetPlot(player, hardReset)) {
+            sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + ChatColor.GREEN + "The plot of " + player.getName() + " is reset.");
             return true;
         }
-        sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + player.getName() + " doesn't have a Build Off plot.");
+        sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + ChatColor.RED + player.getName() + " doesn't have a Build Off plot.");
         return false;
     }
 
-    public boolean resetPlot(String name) {
+    public boolean resetPlot(String name, boolean hardReset) {
         for (Map.Entry<Integer, Plot> plotEntry : plots.entrySet()) {
             if (name != null && plotEntry.getValue().getContestant() != null && name.equals(plotEntry.getValue().getContestant().getName())) {
-                return resetPlot(plotEntry.getKey());
+                return resetPlot(plotEntry.getKey(), hardReset);
             }
         }
         return false;
     }
 
-    public boolean resetPlot(String name, CommandSender sender) {
-        if (resetPlot(name)) {
-            sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + "The plot of " + name + " is reset.");
+    public boolean resetPlot(String name, boolean hardReset, CommandSender sender) {
+        if (resetPlot(name, hardReset)) {
+            sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + ChatColor.GREEN + "The plot of " + name + " is reset.");
             return true;
         }
-        sender.sendMessage(BuildOffManager.pluginChatPrefix(false) + name + " doesn't have a Build Off plot. Did you spell the name correctly?");
+        sender.sendMessage(BuildOffManager.pluginChatPrefix(true) + ChatColor.RED + name + " doesn't have a Build Off plot. Did you spell the name correctly?");
         return false;
     }
 
@@ -186,7 +187,7 @@ public class BuildOff {
         if (state == BuildOffState.CLOSED) {
             state = BuildOffState.DISABLED;
             for (int plotNr : plots.keySet()) {
-                resetPlot(plotNr);
+                resetPlot(plotNr, false);
             }
             clearResetContestants();
             themeSign.update(true);
@@ -215,7 +216,7 @@ public class BuildOff {
 
     public Boolean leavePlot(Player player) {
         if (state == BuildOffState.OPENED) {
-            Boolean result = resetPlot(player);
+            Boolean result = resetPlot(player, true);
             board.update();
             return result;
         }
@@ -279,6 +280,7 @@ public class BuildOff {
     public void initPlots() {
         initPlots(0, 3);
     }
+
     public void initPlots(int startPlot, int priority) {
         for (int i = startPlot; i < plots.size(); i++) {
             BuildOffManager.getPlugin().getLogger().info("Init plot " + i);
@@ -305,13 +307,13 @@ public class BuildOff {
         themeSign.update(true);
     }
 
-    public void extendTime(int minutes){
-            Calendar c = Calendar.getInstance();
-            c.setTime(new Date());
-            c.add(Calendar.MINUTE, minutes);
-            buildOffEnd = c.getTime();
+    public void extendTime(int minutes) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(buildOffEnd);
+        c.add(Calendar.MINUTE, minutes);
+        buildOffEnd = c.getTime();
     }
-    
+
     public Location getPlotLocation(int plotNr) {
         int xPlot = plotNr % plotsPerRow;
         int yPlot = plotNr / plotsPerRow;
@@ -349,9 +351,5 @@ public class BuildOff {
     public int getPlotSize() {
         return plotSize;
     }
-    
-    
-    
-    
 
 }

@@ -84,8 +84,8 @@ public class Plot {
         return contestant;
     }
 
-    public void reset() {
-        if (contestant == null) {
+    public void reset(boolean hardReset) {
+        if (!hardReset && contestant == null) {
             return;
         }
         BuildOff bo = BuildOffManager.getPlugin().getActiveBuildOff();
